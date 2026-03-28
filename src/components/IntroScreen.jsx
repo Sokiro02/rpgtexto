@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { playIntroMusic } from "../audio/audioManager";
 
 const createIntroParticles = () =>
   Array.from({ length: 20 }, (_, index) => ({
@@ -13,6 +14,10 @@ const createIntroParticles = () =>
 
 export default function IntroScreen({ onStart }) {
   const introParticles = useMemo(() => createIntroParticles(), []);
+
+  useEffect(() => {
+    playIntroMusic();
+  }, []);
 
   return (
     <div

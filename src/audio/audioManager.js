@@ -7,6 +7,7 @@ gameAudio.loop = true;
 gameAudio.volume = 0.35;
 
 let muted = gameAudio.muted;
+let firstInteractionBound = false;
 
 const syncMutedState = () => {
   introAudio.muted = muted;
@@ -42,3 +43,20 @@ export function setMuted(value) {
 export function getMuted() {
   return muted;
 }
+
+function startOnFirstInteraction() {
+  if (typeof document === "undefined" || firstInteractionBound) return;
+
+  firstInteractionBound = true;
+  const events = ["mousedown", "touchstart", "keydown", "scroll"];
+  const handler = () => {
+    playIntroMusic();
+    events.forEach((eventName) => document.removeEventListener(eventName, handler));
+  };
+
+  events.forEach((eventName) =>
+    document.addEventListener(eventName, handler, { once: true })
+  );
+}
+
+startOnFirstInteraction();

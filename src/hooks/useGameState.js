@@ -7,6 +7,7 @@ import {
   stopAll,
 } from "../audio/audioManager";
 import { STORY } from "../data/story";
+import { getBgForLocation } from "../utils/backgrounds";
 
 const DEFAULT_STATS = { vida: 100, mana: 80, oro: 10, experiencia: 0 };
 const DEFAULT_INVENTORY = ["Daga oxidada", "Capa raída"];
@@ -109,10 +110,15 @@ export function useGameState() {
     setChoicesVisible(false);
     setTransitioning(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const nextNode = STORY[choice.nextId];
     if (!nextNode) return;
+
+    if (nextNode.location) {
+      const img = new Image();
+      img.src = getBgForLocation(nextNode.location, nextNode.atmosphere);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     applyNode(nextNode, choice.statChanges || {});
     setSelectedChoice(null);

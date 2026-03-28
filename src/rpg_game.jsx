@@ -7,41 +7,15 @@ import NarrativePanel from "./components/NarrativePanel";
 import Sidebar from "./components/Sidebar";
 import { atmosphereColors } from "./constants/theme";
 import { useGameState } from "./hooks/useGameState";
-
-const LOCATION_BACKGROUNDS = {
-  "Ruinas del Templo de Valdris": "/bg-ruinas-templo-valdris.png",
-  "Interior del Templo": "/bg-interior-templo.png",
-  "Bosque de Keth": "/bg-bosque-keth.png",
-  "Cruce de Caminos": "/bg-cruce-caminos.png",
-  "Bosque de Keth – Emboscada": "/bg-bosque-emboscada.png",
-  "Altar del Dragón Durmiente": "/bg-altar-dragon-durmiente.png",
-  "Pueblo de Keth": "/bg-pueblo-keth.png",
-  "Catacumbas del Este – Entrada": "/bg-catacumbas-entrada.png",
-  "Claro del Bosque": "/bg-claro-bosque..png",
-  "Altar del Poder Antiguo": "/bg-altar-poder-antiguo.png",
-  "Cámara del Ritual Oscuro": "/bg-camara-ritual-oscuro.png",
-  "Salón del Alcalde – Pueblo de Keth": "/bg-salon-alcalde-keth.png",
-  "Sala del Campeón – Catacumbas": "/bg-sala-campeon-catacumbas.png",
-  "Pico del Abismo – Guarida de Valdrix": "/bg-pico-abismo-guarida-valdrix.png",
-  "Pueblo de Keth – Día de la Victoria": "/bg-pueblo-keth-victoria..png",
-  "Trono de Obsidiana – Pico del Abismo": "/bg-trono-obsidiana..png",
-  "Pico del Abismo – El Último Sello": "/bg-pico-abismo-ultimo-sello.png",
-  "Camino sin nombre – Al borde de Valdris": "/bg-camino-sin-nombre.png",
-};
-
-const ATMOSPHERE_FALLBACK_BACKGROUNDS = {
-  dark: "/bg-ruinas-templo-valdris.png",
-  mystic: "/bg-altar-poder-antiguo.png",
-  battle: "/bg-sala-campeon-catacumbas.png",
-  calm: "/bg-pueblo-keth.png",
-  danger: "/bg-pico-abismo-guarida-valdrix.png",
-};
+import {
+  ATMOSPHERE_FALLBACK_BACKGROUNDS,
+  LOCATION_BACKGROUNDS,
+  getBgForLocation,
+} from "./utils/backgrounds";
+import { preloadImages } from "./utils/preloader";
 
 function AtmosphereScene({ atmosphere, location }) {
-  const backgroundImage =
-    LOCATION_BACKGROUNDS[location] ||
-    ATMOSPHERE_FALLBACK_BACKGROUNDS[atmosphere] ||
-    ATMOSPHERE_FALLBACK_BACKGROUNDS.dark;
+  const backgroundImage = getBgForLocation(location, atmosphere);
 
   const overlayByAtmosphere = {
     battle: "rgba(10, 6, 4, 0.64)",
@@ -65,6 +39,9 @@ function AtmosphereScene({ atmosphere, location }) {
         src={backgroundImage}
         alt=""
         aria-hidden="true"
+        loading="eager"
+        width="1920"
+        height="1080"
         style={{
           width: "100%",
           height: "100%",
@@ -110,6 +87,13 @@ export default function RPGGame() {
       storyRef.current.scrollTop = 0;
     }
   }, [game.currentNode?.id]);
+
+  useEffect(() => {
+    preloadImages([
+      ...Object.values(LOCATION_BACKGROUNDS),
+      ...Object.values(ATMOSPHERE_FALLBACK_BACKGROUNDS),
+    ]);
+  }, []);
 
   if (game.screen === "intro") {
     return <IntroScreen onStart={game.goToName} />;
