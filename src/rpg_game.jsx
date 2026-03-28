@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import AchievementsPanel from "./components/AchievementsPanel";
+import AuthScreen from "./components/AuthScreen";
 import ChoiceList from "./components/ChoiceList";
 import IntroScreen from "./components/IntroScreen";
 import ItemCometa from "./components/ItemCometa";
 import NameScreen from "./components/NameScreen";
 import NarrativePanel from "./components/NarrativePanel";
+import RankingPanel from "./components/RankingPanel";
 import Sidebar from "./components/Sidebar";
 import { atmosphereColors } from "./constants/theme";
 import { useGameState } from "./hooks/useGameState";
+import { getUser, signOut } from "./lib/gameDB";
+import { supabase } from "./lib/supabase";
 import {
   ATMOSPHERE_FALLBACK_BACKGROUNDS,
   LOCATION_BACKGROUNDS,
@@ -61,11 +66,113 @@ function AtmosphereScene({ atmosphere, location }) {
   );
 }
 
+function ModalShell({ title, onClose, children }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        background: "rgba(0,0,0,0.64)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
+    >
+      <div
+        style={{
+          width: "min(760px, 100%)",
+          maxHeight: "80vh",
+          overflow: "auto",
+          borderRadius: "12px",
+          background: "linear-gradient(180deg, rgba(25,13,3,0.97), rgba(14,7,2,0.97))",
+          border: "1px solid rgba(201,147,58,0.32)",
+          boxShadow: "0 30px 90px rgba(0,0,0,0.45)",
+          padding: "22px 22px 24px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "18px",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Cinzel', serif",
+              color: "#f8e4a4",
+              fontSize: "20px",
+              letterSpacing: "2px",
+            }}
+          >
+            {title}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "rgba(201,147,58,0.08)",
+              color: "#f0d080",
+              border: "1px solid rgba(201,147,58,0.22)",
+              borderRadius: "999px",
+              width: "36px",
+              height: "36px",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function RPGGame() {
-  const game = useGameState();
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [guestMode, setGuestMode] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [showRanking, setShowRanking] = useState(false);
+  const game = useGameState(user);
   const storyRef = useRef(null);
   const [isCompactLayout, setIsCompactLayout] = useState(() => window.innerWidth <= 960);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 960);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const hydrateUser = async () => {
+      const currentUser = await getUser();
+      if (mounted) {
+        setUser(currentUser);
+        setAuthReady(true);
+      }
+    };
+
+    void hydrateUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
+      setAuthReady(true);
+      if (session?.user) {
+        setGuestMode(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const syncLayout = () => {
@@ -94,6 +201,29 @@ export default function RPGGame() {
       ...Object.values(ATMOSPHERE_FALLBACK_BACKGROUNDS),
     ]);
   }, []);
+
+  if (!authReady) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#060408",
+          color: "#f0d080",
+          fontFamily: "'Cinzel', serif",
+          letterSpacing: "2px",
+        }}
+      >
+        Cargando Valdris...
+      </div>
+    );
+  }
+
+  if (!user && !guestMode) {
+    return <AuthScreen onContinueGuest={() => setGuestMode(true)} />;
+  }
 
   if (game.screen === "intro") {
     return <IntroScreen onStart={game.goToName} />;
@@ -206,6 +336,18 @@ export default function RPGGame() {
           item={game.newItemAnimation}
           onComplete={() => game.clearNewItemAnimation()}
         />
+      )}
+
+      {showAchievements && (
+        <ModalShell title="Logros" onClose={() => setShowAchievements(false)}>
+          <AchievementsPanel achievements={game.achievements} />
+        </ModalShell>
+      )}
+
+      {showRanking && (
+        <ModalShell title="Ranking" onClose={() => setShowRanking(false)}>
+          <RankingPanel />
+        </ModalShell>
       )}
 
       <div
@@ -365,6 +507,16 @@ export default function RPGGame() {
             onToggle={() => setSidebarOpen((prev) => !prev)}
             colors={colors}
             newItem={game.highlightedInventoryItem}
+            user={user}
+            onOpenAchievements={() => setShowAchievements(true)}
+            onOpenRanking={() => setShowRanking(true)}
+            onSignOut={async () => {
+              await signOut();
+              setUser(null);
+              setGuestMode(false);
+              setShowAchievements(false);
+              setShowRanking(false);
+            }}
           />
         </div>
 

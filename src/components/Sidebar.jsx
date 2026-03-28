@@ -31,6 +31,10 @@ export default function Sidebar({
   onToggle,
   colors,
   newItem,
+  user,
+  onOpenAchievements,
+  onOpenRanking,
+  onSignOut,
 }) {
   void onToggle;
   void colors;
@@ -66,17 +70,36 @@ export default function Sidebar({
         >
           AVENTURERO
         </div>
-        <div
-          style={{
-            color: "#f0d080",
-            fontFamily: "'Cinzel', serif",
-            fontSize: "14px",
-            letterSpacing: "1px",
-            marginBottom: "6px",
-            wordBreak: "break-word",
-          }}
-        >
-          {playerName}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+          {user?.user_metadata?.avatar_url && (
+            <img
+              src={user.user_metadata.avatar_url}
+              alt={playerName}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "999px",
+                border: "1px solid rgba(240,192,64,0.38)",
+                objectFit: "cover",
+              }}
+            />
+          )}
+          <div
+            style={{
+              color: "#f0d080",
+              fontFamily: "'Cinzel', serif",
+              fontSize: "14px",
+              letterSpacing: "1px",
+              wordBreak: "break-word",
+            }}
+          >
+            {playerName}
+            {!user && (
+              <div style={{ fontSize: "11px", color: "#b69258", marginTop: "4px" }}>
+                Invitado
+              </div>
+            )}
+          </div>
         </div>
         <div
           style={{
@@ -201,6 +224,85 @@ export default function Sidebar({
             {muted ? "🔇" : "🔊"}
           </span>
         </button>
+      </div>
+
+      <div>
+        <div
+          style={{
+            fontFamily: "'Cinzel', serif",
+            color: "#f0c040",
+            fontSize: "11px",
+            letterSpacing: "2px",
+            marginBottom: "10px",
+            textShadow: "0 0 10px rgba(240,192,64,0.6)",
+          }}
+        >
+          REGISTROS
+        </div>
+        <div style={{ display: "grid", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={onOpenAchievements}
+            style={{
+              width: "100%",
+              background: "rgba(201,147,58,0.12)",
+              border: "1px solid rgba(201,147,58,0.35)",
+              borderLeft: "3px solid #c9933a",
+              color: "#f0d080",
+              padding: "10px 12px",
+              borderRadius: "2px",
+              fontFamily: "'Cinzel', serif",
+              fontSize: "12px",
+              letterSpacing: "1px",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            Logros
+          </button>
+          <button
+            type="button"
+            onClick={onOpenRanking}
+            style={{
+              width: "100%",
+              background: "rgba(201,147,58,0.12)",
+              border: "1px solid rgba(201,147,58,0.35)",
+              borderLeft: "3px solid #c9933a",
+              color: "#f0d080",
+              padding: "10px 12px",
+              borderRadius: "2px",
+              fontFamily: "'Cinzel', serif",
+              fontSize: "12px",
+              letterSpacing: "1px",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            Ranking
+          </button>
+          {user && (
+            <button
+              type="button"
+              onClick={onSignOut}
+              style={{
+                width: "100%",
+                background: "rgba(139,26,26,0.16)",
+                border: "1px solid rgba(201,86,86,0.28)",
+                borderLeft: "3px solid #b74a4a",
+                color: "#f0d080",
+                padding: "10px 12px",
+                borderRadius: "2px",
+                fontFamily: "'Cinzel', serif",
+                fontSize: "12px",
+                letterSpacing: "1px",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              Cerrar sesión
+            </button>
+          )}
+        </div>
       </div>
 
       <div>
