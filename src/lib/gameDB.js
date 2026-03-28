@@ -1,17 +1,22 @@
-import { supabase } from "./supabase";
+import { isSupabaseAvailable, supabase } from "./supabase";
 
 export async function signInWithGoogle() {
+  if (!isSupabaseAvailable) return null;
   await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: window.location.origin },
   });
+  return true;
 }
 
 export async function signOut() {
+  if (!isSupabaseAvailable) return null;
   await supabase.auth.signOut();
+  return true;
 }
 
 export async function getUser() {
+  if (!isSupabaseAvailable) return null;
   const { data } = await supabase.auth.getUser();
   return data.user;
 }
@@ -24,6 +29,7 @@ export async function saveProgress(
   inventory,
   visitedNodes
 ) {
+  if (!isSupabaseAvailable) return null;
   await supabase.from("player_progress").upsert(
     {
       user_id: userId,
@@ -39,6 +45,7 @@ export async function saveProgress(
 }
 
 export async function loadProgress(userId) {
+  if (!isSupabaseAvailable) return null;
   const { data } = await supabase
     .from("player_progress")
     .select("*")
@@ -48,6 +55,7 @@ export async function loadProgress(userId) {
 }
 
 export async function saveAchievements(userId, achievements) {
+  if (!isSupabaseAvailable) return null;
   await supabase.from("achievements").upsert(
     {
       user_id: userId,
@@ -59,6 +67,7 @@ export async function saveAchievements(userId, achievements) {
 }
 
 export async function loadAchievements(userId) {
+  if (!isSupabaseAvailable) return null;
   const { data } = await supabase
     .from("achievements")
     .select("*")
@@ -68,6 +77,7 @@ export async function loadAchievements(userId) {
 }
 
 export async function incrementPartidas(userId) {
+  if (!isSupabaseAvailable) return 0;
   const [progress, achievements] = await Promise.all([
     loadProgress(userId),
     loadAchievements(userId),
@@ -112,6 +122,7 @@ export async function incrementPartidas(userId) {
 }
 
 export async function getRanking() {
+  if (!isSupabaseAvailable) return [];
   const [{ data: achievements }, { data: progress }] = await Promise.all([
     supabase
       .from("achievements")

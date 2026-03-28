@@ -11,7 +11,7 @@ import Sidebar from "./components/Sidebar";
 import { atmosphereColors } from "./constants/theme";
 import { useGameState } from "./hooks/useGameState";
 import { getUser, signOut } from "./lib/gameDB";
-import { supabase } from "./lib/supabase";
+import { isSupabaseAvailable, supabase } from "./lib/supabase";
 import {
   ATMOSPHERE_FALLBACK_BACKGROUNDS,
   LOCATION_BACKGROUNDS,
@@ -135,7 +135,7 @@ function ModalShell({ title, onClose, children }) {
 
 export default function RPGGame() {
   const [user, setUser] = useState(null);
-  const [authReady, setAuthReady] = useState(false);
+  const [authReady, setAuthReady] = useState(!isSupabaseAvailable);
   const [guestMode, setGuestMode] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showRanking, setShowRanking] = useState(false);
@@ -145,6 +145,10 @@ export default function RPGGame() {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 960);
 
   useEffect(() => {
+    if (!isSupabaseAvailable) {
+      return undefined;
+    }
+
     let mounted = true;
 
     const hydrateUser = async () => {
@@ -221,7 +225,7 @@ export default function RPGGame() {
     );
   }
 
-  if (!user && !guestMode) {
+  if (isSupabaseAvailable && !user && !guestMode) {
     return <AuthScreen onContinueGuest={() => setGuestMode(true)} />;
   }
 

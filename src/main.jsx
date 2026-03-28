@@ -4,10 +4,11 @@ import "./index.css";
 
 try {
   import("./App.jsx")
-    .then(({ default: App }) => {
+    .then((module) => {
+      const AppComponent = module.default;
       createRoot(document.getElementById("root")).render(
         <StrictMode>
-          <App />
+          <AppComponent />
         </StrictMode>
       );
     })
